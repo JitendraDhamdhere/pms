@@ -5,6 +5,8 @@
 String loggedInUser = (String) session.getAttribute("username");
 %>
 
+<%@ page import="com.pms.model.UserDetails"%>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -68,25 +70,25 @@ body {
 						<li class="nav-item"><a class="nav-link" href="contact.jsp">Contact
 								Us</a></li>
 
-						<% 
+						<%
 						if (loggedInUser != null) {
-					%>
+						%>
 						<li class="nav-item"><a class="nav-link"
 							href="property-list.jsp">My Properties</a></li>
 						<!-- Show for logged-in users -->
 						<li class="nav-item"><a class="nav-link text-white fw-bold">Welcome,
-								<%= loggedInUser %></a></li>
+								<%=loggedInUser%></a></li>
 						<li class="nav-item"><a
 							class="nav-link btn btn-danger text-white px-3" href="logout.jsp">Logout</a></li>
-						<% 
+						<%
 						} else {
-					%>
+						%>
 
 						<li class="nav-item"><a
 							class="nav-link btn btn-primary text-white px-3" href="login.jsp">Login</a></li>
-						<% 
+						<%
 						}
-					%>
+						%>
 
 						<li class="nav-item"><a class="nav-link"
 							href="adminlogin.jsp">Admin</a></li>
@@ -117,37 +119,49 @@ body {
 			</form>
 
 			<%
-    String username = request.getParameter("username");
-    String password = request.getParameter("password");
+			String username = request.getParameter("username");
+			String password = request.getParameter("password");
 
-    if (username != null && password != null) {
-        PreparedStatement ps = null;
-        ResultSet rs = null;
+			if (username != null && password != null) {
+				PreparedStatement ps = null;
+				ResultSet rs = null;
 
-        try {
-            ps = conn.prepareStatement("SELECT id, username FROM users WHERE username = ? AND password = SHA2(?, 256)");
-            ps.setString(1, username);
-            ps.setString(2, password);
-            rs = ps.executeQuery();
+				try {
+					ps = conn.prepareStatement("SELECT id, username FROM users WHERE username = ? AND password = SHA2(?, 256)");
+					ps.setString(1, username);
+					ps.setString(2, password);
+					rs = ps.executeQuery();
 
-            if (rs.next()) {
-                int userId = rs.getInt("id"); // Retrieve user ID from the database
-                session.setAttribute("userid", userId); // Store userid in session
-                session.setAttribute("username", username); // Store username in session
-                
-                out.print("<div class='alert alert-success mt-3'>Login Successful! Redirecting...</div>");
-                response.setHeader("Refresh", "2; URL=index.jsp");
-            } else {
-                out.print("<div class='alert alert-danger mt-3'>Invalid Username or Password</div>");
-            }
-        } catch (Exception e) {
-            out.print("<div class='alert alert-danger mt-3'>Error: " + e.getMessage() + "</div>");
-        } finally {
-            try { if (rs != null) rs.close(); } catch (SQLException e) {}
-            try { if (ps != null) ps.close(); } catch (SQLException e) {}
-        }
-    }
-%>
+					if (rs.next()) {
+				int userId = rs.getInt("id"); // Retrieve user ID from the database
+				session.setAttribute("userid", userId); // Store userid in session
+				session.setAttribute("username", username); // Store username in session
+				UserDetails user = new UserDetails(userId, username, "");
+			    session.setAttribute("userDetails", user);
+
+				System.out.println(user.toString());
+				
+				out.print("<div class='alert alert-success mt-3'>Login Successful! Redirecting...</div>");
+				response.setHeader("Refresh", "2; URL=index.jsp");
+					} else {
+				out.print("<div class='alert alert-danger mt-3'>Invalid Username or Password</div>");
+					}
+				} catch (Exception e) {
+					out.print("<div class='alert alert-danger mt-3'>Error: " + e.getMessage() + "</div>");
+				} finally {
+					try {
+				if (rs != null)
+					rs.close();
+					} catch (SQLException e) {
+					}
+					try {
+				if (ps != null)
+					ps.close();
+					} catch (SQLException e) {
+					}
+				}
+			}
+			%>
 
 		</div>
 	</div>
